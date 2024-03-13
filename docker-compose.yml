@@ -1,0 +1,52 @@
+services:
+  screen-share-app:
+    build:
+      context: .
+    container_name: screen-share-app
+    image: screen-share-app
+    networks:
+      - app
+    depends_on:
+      - mysql
+    volumes:
+      - app:/app/
+
+  mysql:
+    image: mysql:8.3
+    container_name: db
+    restart: always
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: 'videoshare'
+      MYSQL_ROOT_PASSWORD: '123'
+    ports:
+      - '3306:3306'
+    networks:
+      - app
+    tty: true
+
+  httpd:
+    image: httpd:2.4
+    container_name: apache
+    ports:
+      - 8080:80
+    volumes:
+      - app:/app
+      - ./httpd/my-httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./httpd/server.key:/usr/local/apache2/conf/ssl/server.key
+      - ./httpd/server.crt:/usr/local/apache2/conf/ssl/server.crt
+    networks:
+      - app
+    depends_on:
+      - screen-share-app
+    tty: true
+
+volumes:
+  app:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./
+networks:
+  app:
