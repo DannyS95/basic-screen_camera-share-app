@@ -6,6 +6,6 @@ class VideoCreateController extends Controller
 {
     public function __invoke()
     {
-        return inertia()->render('Videos/Create');
+        return inertia()->render('Videos/Capture');
     }
 }

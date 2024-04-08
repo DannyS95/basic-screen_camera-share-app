@@ -18,6 +18,8 @@
         "vue": "^3.2.41"
     },
     "dependencies": {
-        "dayjs": "^1.11.10"
+        "@mux/upchunk": "^3.3.2",
+        "dayjs": "^1.11.10",
+        "huge-uploader": "^1.0.6"
     }
 }

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\File;
 
-class VideoStoreRequest extends FormRequest
+class VideoFileStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,8 +23,7 @@ class VideoStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'max:255'],
-            'description' => ['required', 'max:1000'],
+            'file' => ['required', File::types(['mp4', 'webm', 'mkv'])],
         ];
     }
 }

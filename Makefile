@@ -8,16 +8,16 @@ CONTAINER_NAME := screen-share-app
 php-artisan:
 	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'php artisan $(command)'
 
-composer:
+composer-i:
 	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'composer install --no-interaction'
 
 npm-i:
-	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'npm install --no-interaction'
+	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'npm install  $(command) --no-interaction'
 
 build:
 	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'npm run build'
 
-install: composer npm-i build
+install: composer-i npm-i build
 
 sh:
 	$(DOCKER_EXEC) $(CONTAINER_NAME) sh

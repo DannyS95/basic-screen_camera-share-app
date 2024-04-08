@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->string('title');
             $table->text('description');
-            $table->string('video_path');
+            $table->string('video_path')->nullable();
             $table->string('still_path')->nullable();
             $table->timestamps();
         });

@@ -32,7 +32,7 @@ const showingNavigationDropdown = ref(false);
                                 <NavLink :href="route('videos.index')" :active="route().current('videos.index')">
                                     Videos
                                 </NavLink>
-                                <NavLink :href="route('videos.create')" :active="route().current('videos.create')">
+                                <NavLink :href="route('videos.capture')" :active="route().current('videos.capture')">
                                     Capture
                                 </NavLink>
                             </div>
@@ -118,7 +118,7 @@ const showingNavigationDropdown = ref(false);
                         <ResponsiveNavLink :href="route('videos.index')" :active="route().current('videos.index')">
                             Videos
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('videos.create')" :active="route().current('videos.create')">
+                        <ResponsiveNavLink :href="route('videos.capture')" :active="route().current('videos.capture')">
                             Capture
                         </ResponsiveNavLink>
                     </div>

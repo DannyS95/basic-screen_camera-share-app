@@ -7,9 +7,10 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Textarea from '@/Components/Textarea.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage  } from '@inertiajs/vue3';
 import { ref, reactive, computed, watch } from 'vue'
 import dayjs from 'dayjs'
+import HugeUploader from 'huge-uploader';
 
 const state = reactive({
     stream: null,
@@ -123,6 +124,19 @@ watch(() => state.blob, (blob) => {
 
     form.title = currentDate.value
     form.description = `A video captured on ${currentDate.value}`
+
+    const uploader = new HugeUploader({ endpoint: route('videos.capture.file'), file: form.video,
+        headers: {
+            'X-CSRF-TOKEN': usePage().props.csrf_token
+        },
+        chunkSize: 100 / 1024
+    });
+
+    uploader.on('progress', (progress) => {
+        console.log(`The upload is at ${progress.detail}%`);
+    });
+
+    uploader.on('finish', body => console.log('🍾'));
 })
 </script>
 
@@ -168,7 +182,7 @@ watch(() => state.blob, (blob) => {
                             </div>
 
                         </div>
-                        <form v-show="state.blobUrl" class="space-y-6" v-on:submit.prevent="form.post(route('videos.store'), { preserveScroll: true })">
+                        <form v-show="state.blobUrl" class="space-y-6" v-on:submit.prevent="submit()">
                             <video controls ref="videoPreview"></video>
 
                             <div>

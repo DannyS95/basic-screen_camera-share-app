@@ -31,7 +31,7 @@ defineProps({
                 </template>
                 <template v-else>
                     <div class="text-center font-medium">
-                        Nothing here. <Link :href="route('videos.create')" class="text-indigo-500">Ready to capture your first video</Link>?
+                        Nothing here. <Link :href="route('videos.capture')" class="text-indigo-500">Ready to capture your first video</Link>?
                     </div>
                 </template>
             </div>

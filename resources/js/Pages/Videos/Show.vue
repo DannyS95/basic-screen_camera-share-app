@@ -9,7 +9,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { router, useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
-    video: Object
+    video: Object,
+    upload: Object
 })
 
 const form = useForm({

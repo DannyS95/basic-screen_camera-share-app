@@ -1,17 +1,19 @@
 <?php
 
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Application;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\VideoCreateController;
-use App\Http\Controllers\VideoDestroyController;
-use App\Http\Controllers\VideoIndexController;
 use App\Http\Controllers\VideoShowController;
-use App\Http\Controllers\VideoStoreController;
-use App\Http\Controllers\VideoUpdateController;
 use App\Http\Controllers\VideoViewController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\VideoIndexController;
+use App\Http\Controllers\VideoStoreController;
+use App\Http\Controllers\VideoCreateController;
+use App\Http\Controllers\VideoUpdateController;
+use App\Http\Controllers\VideoDestroyController;
+use App\Http\Controllers\VideoCaptureStoreController;
+use App\Http\Controllers\VideoCaptureFileStoreController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,8 +32,10 @@ Route::get('/view/{video:uuid}', VideoViewController::class)->name('videos.view'
 
 Route::middleware('auth')->group(function () {
     Route::get('/videos', VideoIndexController::class)->name('videos.index');
-    Route::get('/videos/create', VideoCreateController::class)->name('videos.create');
+    Route::get('/videos/capture', VideoCreateController::class)->name('videos.capture');
     Route::post('/videos', VideoStoreController::class)->name('videos.store');
+    Route::post('/videos/capture/store', VideoCaptureStoreController::class)->name('videos.capture.store');
+    Route::post('/videos/capture/file/store', VideoCaptureFileStoreController::class)->name('videos.capture.file');
     Route::get('/videos/{video:uuid}', VideoShowController::class)->name('videos.show');
     Route::patch('/videos/{video:uuid}', VideoUpdateController::class)->name('videos.update');
     Route::delete('/videos/{video:uuid}', VideoDestroyController::class)->name('videos.destroy');

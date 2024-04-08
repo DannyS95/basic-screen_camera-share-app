@@ -4,15 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Video;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use App\Jobs\ConvertVideoFormat;
 use Illuminate\Http\UploadedFile;
-use App\Http\Requests\VideoStoreRequest;
+use App\Http\Requests\VideoFileStoreRequest;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\ContentRangeUploadHandler;
 
-class VideoStoreController extends Controller
+class VideoCaptureFileStoreController extends Controller
 {
-    public function __invoke(VideoStoreRequest $request)
+    public function __invoke(VideoFileStoreRequest $request, Video $video)
     {
         $receiver = new FileReceiver(
             UploadedFile::fake()->createWithContent('file', $request->getContent()),
@@ -23,21 +24,17 @@ class VideoStoreController extends Controller
         $save = $receiver->receive();
 
         if ($save->isFinished()) {
-            return $this->storeAndAttachFile($save->getFile(), $request);
+            return $this->storeAndAttachFile($save->getFile(), $video);
         }
 
         $save->handler();
-
-        return redirect()->route('videos.index');
     }
 
-    private function storeAndAttachFile(UploadedFile $file, VideoStoreRequest $request)
+    protected function storeAndAttachFile(UploadedFile $file, Video $video)
     {
-        $video = $request->user()->videos()->create(
-            $request->only('title', 'description') + [
-                'video_path' => $file->storeAs('videos', Str::uuid(), 'public')
-            ]
-        );
+        $video->update([
+            'video_path' => $file->storeAs('videos', Str::uuid(), 'public')
+        ]);
 
         ConvertVideoFormat::dispatch($video);
     }
