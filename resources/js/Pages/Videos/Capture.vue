@@ -8,9 +8,12 @@ import TextInput from '@/Components/TextInput.vue';
 import Textarea from '@/Components/Textarea.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, useForm, usePage  } from '@inertiajs/vue3';
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import HugeUploader from 'huge-uploader';
+
+onMounted(() => {
+})
 
 const state = reactive({
     stream: null,
@@ -20,6 +23,14 @@ const state = reactive({
     blobUrl: computed(() => state.blob ? URL.createObjectURL(state.blob) : null),
     streamActive: computed(() => state.stream?.active),
     isRecording: computed(() => state.recorder ? state.recorder.state === 'recording' : false),
+    upload: {
+        uploading: ref(false),
+        uploadProgress: ref(null),
+        encoding: ref(false),
+        encodeProgress: ref(null),
+        paused: ref(false),
+        file: ref(null)
+    }
 })
 
 const form = useForm({
@@ -109,6 +120,36 @@ const captureScreen = () => {
     })
 }
 
+const handleFileUpload = (id) => {
+    const upload = new HugeUploader({ endpoint: route('videos.capture.file', id), file: form.video,
+        headers: {
+            'X-CSRF-TOKEN': usePage().props.csrf_token
+        },
+        chunkSize: 50 / 1024
+    });
+
+    upload.on('progress', (progress) => {
+        state.upload.uploadProgress = progress.detail
+        console.log(progress.detail)
+    });
+
+    upload.on('finish', body => console.log('🍾'));
+
+    return upload
+}
+
+const handleCapture = () => {
+    axios.post(route('videos.capture.store'), {
+            title: form.title,
+            description: form.description
+        }).then((response) => {
+            state.upload.id = response.data.id,
+            state.upload.file = handleFileUpload(response.data.id)
+            state.upload.uploading = true
+            state.upload.encodeProgress = 0
+    })
+}
+
 watch(() => state.stream, (stream) => {
     player.value.srcObject = stream
 })
@@ -124,19 +165,6 @@ watch(() => state.blob, (blob) => {
 
     form.title = currentDate.value
     form.description = `A video captured on ${currentDate.value}`
-
-    const uploader = new HugeUploader({ endpoint: route('videos.capture.file'), file: form.video,
-        headers: {
-            'X-CSRF-TOKEN': usePage().props.csrf_token
-        },
-        chunkSize: 100 / 1024
-    });
-
-    uploader.on('progress', (progress) => {
-        console.log(`The upload is at ${progress.detail}%`);
-    });
-
-    uploader.on('finish', body => console.log('🍾'));
 })
 </script>
 
@@ -150,29 +178,29 @@ watch(() => state.blob, (blob) => {
                     <div class="p-6 text-gray-900">
                         <div class="max-w-[240px] w-full space-y-3">
 
-                            <div class="space-y-1">
+                            <div class="space-y-1" v-if="state.upload.encodeProgress">
                                 <div class="bg-gray-100 shadow-inner h-3 rounded overflow-hidden">
-                                    <div class="bg-green-500 h-full" v-bind:style="{ width: `%` }"></div>
+                                    <div class="bg-green-500 h-full" v-bind:style="{ width: `${state.upload.encodeProgress}% ` }"></div>
                                 </div>
                                 <div class="text-sm">
                                     Encoding
                                 </div>
                             </div>
 
-                            <div class="space-y-1">
+                            <div class="space-y-1" v-if="state.upload.uploadProgress">
                                 <div class="bg-gray-100 shadow-inner h-3 rounded overflow-hidden">
-                                    <div class="bg-blue-500 h-full" v-bind:style="{ width: `%` }"></div>
+                                    <div class="bg-blue-500 h-full" v-bind:style="{ width: `${state.upload.uploadProgress}% ` }"></div>
                                 </div>
                                 <div class="text-sm">
                                     Uploading
                                 </div>
                             </div>
 
-                            <div class="flex items-center space-x-3">
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('pause', 1)">
+                            <div class="flex items-center space-x-3" v-if="state.upload.uploading">
+                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('pause', 1)" v-if="!state.paused">
                                     Pause
                                 </button>
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('resume', 1)">
+                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('resume', 1)" v-if="state.paused">
                                     Resume
                                 </button>
 
@@ -182,7 +210,7 @@ watch(() => state.blob, (blob) => {
                             </div>
 
                         </div>
-                        <form v-show="state.blobUrl" class="space-y-6" v-on:submit.prevent="submit()">
+                        <form v-show="state.blobUrl" class="space-y-6" v-on:submit.prevent="handleCapture()">
                             <video controls ref="videoPreview"></video>
 
                             <div>

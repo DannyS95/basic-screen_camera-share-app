@@ -35,7 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/videos/capture', VideoCreateController::class)->name('videos.capture');
     Route::post('/videos', VideoStoreController::class)->name('videos.store');
     Route::post('/videos/capture/store', VideoCaptureStoreController::class)->name('videos.capture.store');
-    Route::post('/videos/capture/file/store', VideoCaptureFileStoreController::class)->name('videos.capture.file');
+    Route::post('/videos/capture/{video}/file/store', VideoCaptureFileStoreController::class)->name('videos.capture.file');
     Route::get('/videos/{video:uuid}', VideoShowController::class)->name('videos.show');
     Route::patch('/videos/{video:uuid}', VideoUpdateController::class)->name('videos.update');
     Route::delete('/videos/{video:uuid}', VideoDestroyController::class)->name('videos.destroy');
