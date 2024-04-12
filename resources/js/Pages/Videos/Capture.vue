@@ -150,6 +150,8 @@ const handleCapture = () => {
     })
 }
 
+watch(() => state.upload.uploadProgress, (progress) => { if (progress === 100) { state.upload.uploadProgress = null } })
+
 watch(() => state.stream, (stream) => {
     player.value.srcObject = stream
 })
