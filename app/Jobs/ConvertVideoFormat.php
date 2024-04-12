@@ -3,15 +3,16 @@
 namespace App\Jobs;
 
 use App\Models\Video;
+use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Events\VideoEncodingProgress;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use ProtoneMedia\LaravelFFMpeg\Filesystem\Media;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use ProtoneMedia\LaravelFFMpeg\Support\FFMpeg;
+use ProtoneMedia\LaravelFFMpeg\Filesystem\Media;
 
 class ConvertVideoFormat implements ShouldQueue
 {
@@ -35,6 +36,9 @@ class ConvertVideoFormat implements ShouldQueue
             ->export()
             ->toDisk('public')
             ->inFormat(new \FFMpeg\Format\Video\X264())
+            ->onProgress(function ($percentage) {
+                event(new VideoEncodingProgress($percentage));
+            })
             ->afterSaving(function ($exporter, Media $media) {
                 Storage::disk('public')->delete($this->video->video_path);
 

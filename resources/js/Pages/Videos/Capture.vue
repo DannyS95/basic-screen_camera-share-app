@@ -13,6 +13,13 @@ import dayjs from 'dayjs'
 import HugeUploader from 'huge-uploader';
 
 onMounted(() => {
+    Echo.private(`users.${usePage().props.auth.user.id}`)
+        .listen('EncodeVideoStart', (e) => {
+            console.log(e)
+        })
+        .listen('EncodeVideoProgress', (e) => {
+            console.log(e)
+        })
 })
 
 const state = reactive({

@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Video;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Jobs\ConvertVideoFormat;
 use Illuminate\Http\UploadedFile;
+use App\Jobs\GenerateVideoPreviewImage;
 use App\Http\Requests\VideoFileStoreRequest;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\ContentRangeUploadHandler;
@@ -15,8 +15,10 @@ class VideoCaptureFileStoreController extends Controller
 {
     public function __invoke(VideoFileStoreRequest $request, Video $video)
     {
+        $file = $request->only('file')['file'];
+
         $receiver = new FileReceiver(
-            UploadedFile::fake()->createWithContent('file', $request->getContent()),
+            $file,
             $request,
             ContentRangeUploadHandler::class,
         );
@@ -30,12 +32,13 @@ class VideoCaptureFileStoreController extends Controller
         $save->handler();
     }
 
-    protected function storeAndAttachFile(UploadedFile $file, Video $video)
+    private function storeAndAttachFile(UploadedFile $file, Video $video)
     {
         $video->update([
-            'video_path' => $file->storeAs('videos', Str::uuid(), 'public')
+            'video_path' => $file->storePubliclyAs('videos', Str::uuid(), 'public')
         ]);
 
+        GenerateVideoPreviewImage::dispatch($video);
         ConvertVideoFormat::dispatch($video);
     }
 }
