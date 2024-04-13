@@ -11,6 +11,9 @@ php-artisan:
 composer-i:
 	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'composer install --no-interaction'
 
+composer-u:
+	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'composer update --no-interaction'
+
 npm-i:
 	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'npm install  $(command) --no-interaction'
 

@@ -1,6 +1,6 @@
 <?php
 
-use App\Broadcasting\VideoCapture;
+use App\Broadcasting\VideoCaptureChannel;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -14,4 +14,4 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('video-capture', VideoCapture::class);
+Broadcast::channel('video-capture', VideoCaptureChannel::class);

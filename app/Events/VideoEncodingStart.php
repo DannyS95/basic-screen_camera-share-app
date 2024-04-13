@@ -8,24 +8,23 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
-class VideoEncodingProgress implements ShouldBroadcastNow
+class VideoEncodingStart implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(public string $percentage)
+    public function __construct(public bool $encodingStart)
     {
         //
     }
 
-    public function broadCastWith()
+    public function broadcastWith()
     {
-        return [
-            'percentage' => $this->percentage,
-        ];
+        return ['encoding' => $this->encodingStart];
     }
+
 
     /**
      * Get the channels the event should broadcast on.

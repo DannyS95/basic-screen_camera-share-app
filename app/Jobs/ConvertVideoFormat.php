@@ -6,6 +6,7 @@ use App\Models\Video;
 use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
 use App\Events\VideoEncodingProgress;
+use App\Events\VideoEncodingStart;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Queue\InteractsWithQueue;
@@ -31,6 +32,8 @@ class ConvertVideoFormat implements ShouldQueue
      */
     public function handle(): void
     {
+        event(new VideoEncodingStart(true));
+
         FFMpeg::fromDisk('public')
             ->open($this->video->video_path)
             ->export()

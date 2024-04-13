@@ -13,12 +13,16 @@ import dayjs from 'dayjs'
 import HugeUploader from 'huge-uploader';
 
 onMounted(() => {
-    Echo.private(`users.${usePage().props.auth.user.id}`)
-        .listen('EncodeVideoStart', (e) => {
-            console.log(e)
+    Echo.channel(`video-capture`)
+        .listen('VideoEncodingStart', (e) => {
+            state.upload.encoding = true
         })
-        .listen('EncodeVideoProgress', (e) => {
-            console.log(e)
+        .listen('VideoEncodingProgress', (e) => {
+            if (e.percentage == 100) {
+                setTimeout(1000)
+                state.upload.encodeProgress = 0;
+            }
+            state.upload.encodeProgress = parseInt(e.percentage)
         })
 })
 
@@ -132,15 +136,16 @@ const handleFileUpload = (id) => {
         headers: {
             'X-CSRF-TOKEN': usePage().props.csrf_token
         },
-        chunkSize: 50 / 1024
+        chunkSize: 256 / 1024
     });
+
+    state.upload.uploading = true
 
     upload.on('progress', (progress) => {
         state.upload.uploadProgress = progress.detail
-        console.log(progress.detail)
     });
 
-    upload.on('finish', body => console.log('🍾'));
+    upload.on('finish', body => {  setTimeout(1000); state.upload.uploadProgress = 0; });
 
     return upload
 }
@@ -156,8 +161,6 @@ const handleCapture = () => {
             state.upload.encodeProgress = 0
     })
 }
-
-watch(() => state.upload.uploadProgress, (progress) => { if (progress === 100) { state.upload.uploadProgress = null } })
 
 watch(() => state.stream, (stream) => {
     player.value.srcObject = stream
@@ -187,7 +190,7 @@ watch(() => state.blob, (blob) => {
                     <div class="p-6 text-gray-900">
                         <div class="max-w-[240px] w-full space-y-3">
 
-                            <div class="space-y-1" v-if="state.upload.encodeProgress">
+                            <div class="space-y-1" v-if="state.upload.encoding">
                                 <div class="bg-gray-100 shadow-inner h-3 rounded overflow-hidden">
                                     <div class="bg-green-500 h-full" v-bind:style="{ width: `${state.upload.encodeProgress}% ` }"></div>
                                 </div>
@@ -196,7 +199,7 @@ watch(() => state.blob, (blob) => {
                                 </div>
                             </div>
 
-                            <div class="space-y-1" v-if="state.upload.uploadProgress">
+                            <div class="space-y-1" v-if="state.upload.uploading">
                                 <div class="bg-gray-100 shadow-inner h-3 rounded overflow-hidden">
                                     <div class="bg-blue-500 h-full" v-bind:style="{ width: `${state.upload.uploadProgress}% ` }"></div>
                                 </div>

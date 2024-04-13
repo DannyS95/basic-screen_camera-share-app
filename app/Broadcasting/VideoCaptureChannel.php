@@ -4,7 +4,7 @@ namespace App\Broadcasting;
 
 use App\Models\User;
 
-class VideoCapture
+class VideoCaptureChannel
 {
     /**
      * Create a new channel instance.

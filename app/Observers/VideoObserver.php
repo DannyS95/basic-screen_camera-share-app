@@ -4,7 +4,6 @@ namespace App\Observers;
 
 use App\Models\Video;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class VideoObserver
 {
