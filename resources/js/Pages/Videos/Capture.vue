@@ -40,7 +40,8 @@ const state = reactive({
         encoding: ref(false),
         encodeProgress: ref(null),
         paused: ref(false),
-        file: ref(null)
+        target: ref(null),
+        id: null
     }
 })
 
@@ -139,8 +140,6 @@ const handleFileUpload = (id) => {
         chunkSize: 256 / 1024
     });
 
-    state.upload.uploading = true
-
     upload.on('progress', (progress) => {
         state.upload.uploadProgress = progress.detail
     });
@@ -155,10 +154,31 @@ const handleCapture = () => {
             title: form.title,
             description: form.description
         }).then((response) => {
+            state.upload.encodeProgress = ref(0)
             state.upload.id = response.data.id,
-            state.upload.file = handleFileUpload(response.data.id)
+            state.upload.target = handleFileUpload(response.data.id)
             state.upload.uploading = true
             state.upload.encodeProgress = 0
+    })
+}
+
+const pauseUpload = () => {
+    state.upload.target.togglePause()
+}
+
+const resumeUpload = () => {
+    state.upload.target.togglePause()
+}
+
+const cancelUpload = () => {
+    state.upload.target = ref(null)
+
+    axios.post(route('videos.destroy', state.upload.id), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+            state.upload.id = null
+        }
     })
 }
 
@@ -209,14 +229,11 @@ watch(() => state.blob, (blob) => {
                             </div>
 
                             <div class="flex items-center space-x-3" v-if="state.upload.uploading">
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('pause', 1)" v-if="!state.paused">
-                                    Pause
+                                <button class="text-blue-500 text-sm font-medium" v-on:click="pauseUpload()" v-if="!state.upload.paused">
+                                    <span v-if="!state.upload.paused">Pause</span>
+                                    <span v-if="state.upload.paused">Resume</span>
                                 </button>
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('resume', 1)" v-if="state.paused">
-                                    Resume
-                                </button>
-
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('cancel', 1)">
+                                <button class="text-blue-500 text-sm font-medium" v-on:click="cancelUpload()" v-if="state.upload.target">
                                     Cancel upload
                                 </button>
                             </div>

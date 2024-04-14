@@ -29,13 +29,13 @@ use App\Http\Controllers\VideoCaptureFileStoreController;
 Route::get('/', HomeController::class)->name('home');
 
 Route::get('/view/{video:uuid}', VideoViewController::class)->name('videos.view');
+Route::post('/videos/capture/{video}/file/store', VideoCaptureFileStoreController::class)->name('videos.capture.file');
 
 Route::middleware('auth')->group(function () {
     Route::get('/videos', VideoIndexController::class)->name('videos.index');
     Route::get('/videos/capture', VideoCreateController::class)->name('videos.capture');
     Route::post('/videos', VideoStoreController::class)->name('videos.store');
     Route::post('/videos/capture/store', VideoCaptureStoreController::class)->name('videos.capture.store');
-    Route::post('/videos/capture/{video}/file/store', VideoCaptureFileStoreController::class)->name('videos.capture.file');
     Route::get('/videos/{video:uuid}', VideoShowController::class)->name('videos.show');
     Route::patch('/videos/{video:uuid}', VideoUpdateController::class)->name('videos.update');
     Route::delete('/videos/{video:uuid}', VideoDestroyController::class)->name('videos.destroy');

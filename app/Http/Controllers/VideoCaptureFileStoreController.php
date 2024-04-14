@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Video;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use App\Jobs\ConvertVideoFormat;
 use Illuminate\Http\UploadedFile;
 use App\Jobs\GenerateVideoPreviewImage;
@@ -13,7 +14,7 @@ use Pion\Laravel\ChunkUpload\Handler\ContentRangeUploadHandler;
 
 class VideoCaptureFileStoreController extends Controller
 {
-    public function __invoke(VideoFileStoreRequest $request, Video $video)
+    public function __invoke(Request $request, Video $video)
     {
         $file = $request->only('file')['file'];
 
@@ -25,7 +26,7 @@ class VideoCaptureFileStoreController extends Controller
 
         $save = $receiver->receive();
 
-        if ($save->isFinished()) {
+        if (bccomp($request->headers->get('Uploader-Chunk-Number'), $request->headers->get('Uploader-Chunks-Total') - 1) === 0) {
             return $this->storeAndAttachFile($save->getFile(), $video);
         }
 
