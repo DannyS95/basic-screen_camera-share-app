@@ -1,8 +1,6 @@
 <?php
 
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VideoShowController;
@@ -29,10 +27,10 @@ use App\Http\Controllers\VideoCaptureFileStoreController;
 Route::get('/', HomeController::class)->name('home');
 
 Route::get('/view/{video:uuid}', VideoViewController::class)->name('videos.view');
-Route::post('/videos/capture/{video}/file/store', VideoCaptureFileStoreController::class)->name('videos.capture.file');
 
 Route::middleware('auth')->group(function () {
     Route::get('/videos', VideoIndexController::class)->name('videos.index');
+    Route::post('/videos/capture/{video:uuid}/file/store', VideoCaptureFileStoreController::class)->name('videos.capture.file');
     Route::get('/videos/capture', VideoCreateController::class)->name('videos.capture');
     Route::post('/videos', VideoStoreController::class)->name('videos.store');
     Route::post('/videos/capture/store', VideoCaptureStoreController::class)->name('videos.capture.store');

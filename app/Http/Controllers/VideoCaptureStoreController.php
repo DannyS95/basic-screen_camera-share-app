@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\VideoResource;
 use App\Http\Requests\VideoStoreRequest;
 
 class VideoCaptureStoreController extends Controller
@@ -11,12 +12,12 @@ class VideoCaptureStoreController extends Controller
         $this->validate($request, [
             'title' => 'required'
         ]);
-        
+
         $video = $request->user()->videos()->create($request->only('title', 'description'));
 
 
         return response()->json([
-            'id' => $video->id
+            'video' => VideoResource::make($video)
         ]);
     }
 }

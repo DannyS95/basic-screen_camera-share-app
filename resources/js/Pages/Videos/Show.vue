@@ -39,40 +39,6 @@ const deleteVideo = () => {
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <div class="max-w-[240px] w-full space-y-3">
-
-                            <div class="space-y-1">
-                                <div class="bg-gray-100 shadow-inner h-3 rounded overflow-hidden">
-                                    <div class="bg-green-500 h-full" v-bind:style="{ width: `%` }"></div>
-                                </div>
-                                <div class="text-sm">
-                                    Encoding
-                                </div>
-                            </div>
-
-                            <div class="space-y-1">
-                                <div class="bg-gray-100 shadow-inner h-3 rounded overflow-hidden">
-                                    <div class="bg-blue-500 h-full" v-bind:style="{ width: `%` }"></div>
-                                </div>
-                                <div class="text-sm">
-                                    Uploading
-                                </div>
-                            </div>
-
-                            <div class="flex items-center space-x-3">
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('pause', 1)">
-                                    Pause
-                                </button>
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('resume', 1)">
-                                    Resume
-                                </button>
-
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="emit('cancel', 1)">
-                                    Cancel upload
-                                </button>
-                            </div>
-
-                        </div>
                         <form class="space-y-6" v-on:submit.prevent="form.patch(route('videos.update', video), { preserveScroll: true })">
                             <video controls :src="`/storage/${video.video_path}`"></video>
 

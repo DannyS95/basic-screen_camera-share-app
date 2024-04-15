@@ -5,8 +5,9 @@ namespace App\Jobs;
 use App\Models\Video;
 use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
-use App\Events\VideoEncodingProgress;
 use App\Events\VideoEncodingStart;
+use App\Events\VideoEncodingFinished;
+use App\Events\VideoEncodingProgress;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Queue\InteractsWithQueue;
@@ -32,7 +33,7 @@ class ConvertVideoFormat implements ShouldQueue
      */
     public function handle(): void
     {
-        event(new VideoEncodingStart(true));
+        event(new VideoEncodingStart());
 
         FFMpeg::fromDisk('public')
             ->open($this->video->video_path)
@@ -48,6 +49,8 @@ class ConvertVideoFormat implements ShouldQueue
                 $this->video->update([
                     'video_path' => $media->getPath()
                 ]);
+
+                event(new VideoEncodingFinished());
             })
             ->save('videos/' . Str::uuid() . '.mp4');
     }

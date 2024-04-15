@@ -15,7 +15,7 @@ composer-u:
 	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'composer update --no-interaction'
 
 npm-i:
-	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'npm install  $(command) --no-interaction'
+	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'npm i plupload'
 
 build:
 	$(DOCKER_EXEC) $(CONTAINER_NAME) sh -c 'npm run build'

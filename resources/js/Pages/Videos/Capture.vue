@@ -7,22 +7,18 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Textarea from '@/Components/Textarea.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, usePage  } from '@inertiajs/vue3';
+import { Head, useForm, usePage, router } from '@inertiajs/vue3';
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import HugeUploader from 'huge-uploader';
 
 onMounted(() => {
     Echo.channel(`video-capture`)
-        .listen('VideoEncodingStart', (e) => {
+        .listen('VideoEncodingStart', () => {
             state.upload.encoding = true
         })
         .listen('VideoEncodingProgress', (e) => {
-            if (e.percentage == 100) {
-                setTimeout(1000)
-                state.upload.encodeProgress = 0;
-            }
-            state.upload.encodeProgress = parseInt(e.percentage)
+            state.upload.encodingProgress = parseInt(e.percentage)
         })
 })
 
@@ -36,12 +32,12 @@ const state = reactive({
     isRecording: computed(() => state.recorder ? state.recorder.state === 'recording' : false),
     upload: {
         uploading: ref(false),
-        uploadProgress: ref(null),
+        uploadingProgress: ref(null),
         encoding: ref(false),
-        encodeProgress: ref(null),
+        encodingProgress: ref(null),
         paused: ref(false),
         target: ref(null),
-        id: null
+        video: null
     }
 })
 
@@ -91,19 +87,7 @@ const stopRecording = () => {
     state.recorder.stream.getTracks().forEach(track => track.stop())
     state.stream = null
     state.recorder = null
-}
-
-const captureAudio = () => {
-    navigator.mediaDevices.getUserMedia({
-        video: false,
-        audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-        }
-    }).then((stream) => {
-        state.audioStream = stream
-    })
+    state.audioStream = null
 }
 
 const captureWebcam = () => {
@@ -132,19 +116,39 @@ const captureScreen = () => {
     })
 }
 
+const captureAudio = () => {
+    navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+        }
+    }).then((stream) => {
+        state.audioStream = stream
+    })
+}
+
 const handleFileUpload = (id) => {
-    const upload = new HugeUploader({ endpoint: route('videos.capture.file', id), file: form.video,
+    const upload = new HugeUploader({ endpoint: route('videos.capture.file', state.upload.video), file: form.video,
         headers: {
             'X-CSRF-TOKEN': usePage().props.csrf_token
         },
-        chunkSize: 256 / 1024
+        chunkSize: 100 / 1024
     });
 
     upload.on('progress', (progress) => {
-        state.upload.uploadProgress = progress.detail
+        state.upload.uploadingProgress = progress.detail
     });
 
-    upload.on('finish', body => {  setTimeout(1000); state.upload.uploadProgress = 0; });
+    upload.on('error', () => {
+        state.upload.target = ref(null)
+        state.upload.uploading = ref(false)
+    });
+
+    upload.on('finish', () => { });
+
+    upload.on('offline', () => { state.upload.targer = ref(null) });
 
     return upload
 }
@@ -154,49 +158,50 @@ const handleCapture = () => {
             title: form.title,
             description: form.description
         }).then((response) => {
-            state.upload.encodeProgress = ref(0)
-            state.upload.id = response.data.id,
+            state.upload.encodingProgress = ref(0)
+            state.upload.video = response.data.video
             state.upload.target = handleFileUpload(response.data.id)
             state.upload.uploading = true
-            state.upload.encodeProgress = 0
+            state.upload.encodingProgress = 0
     })
 }
 
-const pauseUpload = () => {
-    state.upload.target.togglePause()
+const cancelFileUpload = () => {
+    router.delete(route('videos.destroy', state.upload.video), { onSuccess: () => {
+        state.blob = null
+        state.upload.uploading = ref(false)
+        state.upload.uploadingProgress = ref(0)
+    }})
 }
 
-const resumeUpload = () => {
+const pauseCapture = () => {
+    state.upload.paused = true
     state.upload.target.togglePause()
-}
-
-const cancelUpload = () => {
-    state.upload.target = ref(null)
-
-    axios.post(route('videos.destroy', state.upload.id), {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => {
-            state.upload.id = null
-        }
-    })
 }
 
 watch(() => state.stream, (stream) => {
-    player.value.srcObject = stream
+    if (stream !== null) {
+        player.value.srcObject = stream
+
+    }
 })
 
 watch(() => state.blobUrl, (url) => {
-    videoPreview.value.src = url
+    if (url !== null) {
+        videoPreview.value.src = url
+
+    }
 })
 
 watch(() => state.blob, (blob) => {
-    form.video = new File([blob], 'video.mp4', {
-        type: 'video/mp4'
-    })
+    if (blob !== null) {
+            form.video = new File([blob], 'video.mp4', {
+            type: 'video/mp4'
+        })
 
-    form.title = currentDate.value
-    form.description = `A video captured on ${currentDate.value}`
+        form.title = currentDate.value
+        form.description = `A video captured on ${currentDate.value}`
+    }
 })
 </script>
 
@@ -212,7 +217,7 @@ watch(() => state.blob, (blob) => {
 
                             <div class="space-y-1" v-if="state.upload.encoding">
                                 <div class="bg-gray-100 shadow-inner h-3 rounded overflow-hidden">
-                                    <div class="bg-green-500 h-full" v-bind:style="{ width: `${state.upload.encodeProgress}% ` }"></div>
+                                    <div class="bg-green-500 h-full" v-bind:style="{ width: `${state.upload.encodingProgress}% ` }"></div>
                                 </div>
                                 <div class="text-sm">
                                     Encoding
@@ -221,19 +226,19 @@ watch(() => state.blob, (blob) => {
 
                             <div class="space-y-1" v-if="state.upload.uploading">
                                 <div class="bg-gray-100 shadow-inner h-3 rounded overflow-hidden">
-                                    <div class="bg-blue-500 h-full" v-bind:style="{ width: `${state.upload.uploadProgress}% ` }"></div>
+                                    <div class="bg-blue-500 h-full" v-bind:style="{ width: `${state.upload.uploadingProgress}% ` }"></div>
                                 </div>
                                 <div class="text-sm">
                                     Uploading
                                 </div>
                             </div>
 
-                            <div class="flex items-center space-x-3" v-if="state.upload.uploading">
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="pauseUpload()" v-if="!state.upload.paused">
+                            <div class="flex items-center space-x-3" v-if="state.upload.uploading && state.upload.uploadingProgress < 100">
+                                <button class="text-blue-500 text-sm font-medium" v-on:click="pauseCapture()">
                                     <span v-if="!state.upload.paused">Pause</span>
-                                    <span v-if="state.upload.paused">Resume</span>
+                                    <span v-if="state.upload.paused === true">Resume</span>
                                 </button>
-                                <button class="text-blue-500 text-sm font-medium" v-on:click="cancelUpload()" v-if="state.upload.target">
+                                <button class="text-blue-500 text-sm font-medium" v-on:click="cancelFileUpload()">
                                     Cancel upload
                                 </button>
                             </div>
@@ -241,19 +246,16 @@ watch(() => state.blob, (blob) => {
                         </div>
                         <form v-show="state.blobUrl" class="space-y-6" v-on:submit.prevent="handleCapture()">
                             <video controls ref="videoPreview"></video>
-
                             <div>
                                 <InputLabel for="title" value="Title" />
                                 <TextInput id="title" type="text" class="mt-1 block w-full" v-model="form.title" />
                                 <InputError class="mt-2" :message="form.errors.title" />
                             </div>
-
                             <div>
                                 <InputLabel for="description" value="Description" />
                                 <Textarea id="description" type="text" class="mt-1 block w-full" v-model="form.description" />
                                 <InputError class="mt-2" :message="form.errors.description" />
                             </div>
-
                             <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                                 Save video
                             </PrimaryButton>

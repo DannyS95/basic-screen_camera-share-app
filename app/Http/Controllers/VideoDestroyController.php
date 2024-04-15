@@ -10,6 +10,6 @@ class VideoDestroyController extends Controller
     {
         $video->delete();
 
-        return redirect()->route('videos.index');
+        return to_route('videos.capture');
     }
 }

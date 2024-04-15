@@ -21,6 +21,7 @@
         "dayjs": "^1.11.10",
         "huge-uploader": "^1.0.6",
         "laravel-echo": "^1.15.3",
+        "plupload": "^2.3.9",
         "pusher-js": "^8.3.0"
     }
 }
